@@ -254,14 +254,6 @@ Copyright (©) 2026, [Alexander Suvorov](https://github.com/smartlegionlab)
 
 ---
 
-## Version History
-
-| Version | Date       | Changes                                              |
-|---------|------------|------------------------------------------------------|
-| 1.0.0   | 2026-04-15 | Initial release, compatible with smartpasslib v1.0.0 |
-
----
-
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/smartlegionlab/smartpasslib-go/issues)
