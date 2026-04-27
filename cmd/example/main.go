@@ -8,7 +8,7 @@ import (
 func main() {
     fmt.Println()
     fmt.Println("============================================================")
-    fmt.Println("🔐 SMART PASSWORDS LIBRARY GO - EXAMPLE")
+    fmt.Println("🔐 SmartPassLib GO - EXAMPLE")
     fmt.Println("============================================================")
     fmt.Println()
 

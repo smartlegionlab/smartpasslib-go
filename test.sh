@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "============================================================"
-echo "🔐 SMART PASSWORDS LIBRARY GO - TEST SUITE"
+echo "🔐 SmartPassLib GO - TEST SUITE"
 echo "============================================================"
 echo ""
 

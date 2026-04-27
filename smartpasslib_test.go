@@ -6,8 +6,8 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-    if Version != "1.0.0" {
-        t.Errorf("Version mismatch: got %s, want 1.0.0", Version)
+    if Version != "1.0.1" {
+        t.Errorf("Version mismatch: got %s, want 1.0.1", Version)
     }
 }
 

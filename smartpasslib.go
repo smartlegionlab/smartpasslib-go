@@ -1,5 +1,5 @@
 /**
- * SmartPasswordLib v1.0.0 - Go smart password generator
+ * SmartPassLib v1.0.1 - Go smart password generator
  * Cross-platform deterministic password generation
  * Same secret + same length = same password across all platforms
  *
@@ -9,14 +9,18 @@
  * - Private key: 30 iterations of SHA-256 (used for password generation)
  * - Public key: 60 iterations of SHA-256 (used for verification, stored on server)
  *
- * Part of Smart Password Suite:
+ * Ecosystem:
  * - Core library (Python): https://github.com/smartlegionlab/smartpasslib
  * - Core library (JS): https://github.com/smartlegionlab/smartpasslib-js
  * - Core library (Kotlin): https://github.com/smartlegionlab/smartpasslib-kotlin
  * - Core library (Go): https://github.com/smartlegionlab/smartpasslib-go
- * - Desktop: https://github.com/smartlegionlab/smart-password-manager-desktop
- * - CLI Manager: https://github.com/smartlegionlab/clipassman
- * - CLI Generator: https://github.com/smartlegionlab/clipassgen
+ * - Core library (C#): https://github.com/smartlegionlab/smartpasslib-csharp
+ * - Desktop Python: https://github.com/smartlegionlab/smart-password-manager-desktop
+ * - Desktop C#: https://github.com/smartlegionlab/SmartPasswordManagerCsharpDesktop
+ * - CLI Manager Python: https://github.com/smartlegionlab/clipassman
+ * - CLI Manager C#: https://github.com/smartlegionlab/SmartPasswordManagerCsharpCli
+ * - CLI Generator Python: https://github.com/smartlegionlab/clipassgen
+ * - CLI Manager C#: https://github.com/smartlegionlab/SmartPasswordGeneratorCsharpCli
  * - Web: https://github.com/smartlegionlab/smart-password-manager-web
  * - Android: https://github.com/smartlegionlab/smart-password-manager-android
  *
@@ -35,7 +39,7 @@ import (
 )
 
 // Version
-const Version = "1.0.0"
+const Version = "1.0.1"
 
 // Character set for password generation (must match other implementations)
 const Chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&*-_"

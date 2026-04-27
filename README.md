@@ -1,4 +1,4 @@
-# Smart Passwords Library Go <sup>v1.0.0</sup>
+# SmartPassLib Go <sup>v1.0.1</sup>
 
 **Go implementation of deterministic smart password generator. Same secret + same length = same password across all platforms (Python, JS, Kotlin, Go).**
 
@@ -183,7 +183,7 @@ code, _ := smartpasslib.GenerateCode(8)
 
 ## Cross-Platform Compatibility
 
-SmartPasswordLib Go produces **identical passwords** to:
+SmartPassLib Go produces **identical passwords** to:
 
 | Platform   | Repository                                                                                                                |
 |------------|:--------------------------------------------------------------------------------------------------------------------------|
