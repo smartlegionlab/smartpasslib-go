@@ -1,6 +1,16 @@
-# SmartPassLib Go <sup>v1.0.1</sup>
+# SmartPassLib Go <sup>v1.0.2</sup>
 
-**Go implementation of deterministic smart password generator. Same secret + same length = same password across all platforms (Python, JS, Kotlin, Go).**
+---
+
+**Smart Passwords Library**: Cryptographic password generation and management without storage. 
+Generate passwords from secrets, verify knowledge without exposure, manage metadata securely.
+
+**Now with Cross-Platform Determinism**: Same secret + same parameters = identical password on 
+**Go, C#, Python, Kotlin, JavaScript** and any language with SHA-256.
+
+**Decentralized by Design**: Unlike traditional password managers that store encrypted vaults on central servers, 
+smartpasslib stores nothing. Your secrets never leave your device. Passwords are regenerated on-demand — 
+**no cloud, no database, no trust required**.
 
 ---
 
@@ -24,13 +34,16 @@
 
 ## Core Principles
 
-- **Deterministic Generation**: Same secret + same length = same password, every time
-- **Zero Storage**: Passwords exist only when generated, never stored
-- **Cross-Platform**: Compatible with Python, JS, Kotlin implementations
-- **Crypto Secure**: Uses crypto/rand for random generation
+- **Zero-Storage Security**: No passwords or secret phrases are ever stored or transmitted
+- **Decentralized Architecture**: No central servers, no cloud dependency, no third-party trust required
+- **Cross-Platform Deterministic Generation**: Identical secret + parameters = identical password **on any language** (SHA-256 based)
+- **Metadata Only**: Store only verification metadata (public keys, descriptions, lengths)
+- **On-Demand Regeneration**: Passwords are recalculated when needed, never retrieved from storage
+- **Cryptographically Secure**: Uses `crypto/rand` and SHA-256
 
 ## Key Features
 
+- **Decentralized & Serverless**: No central database, no cloud lock-in, complete user sovereignty
 - **Smart Password Generation**: Deterministic from secret phrase
 - **Public/Private Key System**: 30 iterations for private key, 60 for public key
 - **Secret Verification**: Verify secret without exposing it
@@ -41,9 +54,10 @@
 ## Security Model
 
 - **Proof of Knowledge**: Public keys verify secrets without exposing them
-- **Deterministic Certainty**: Mathematical certainty in password regeneration
-- **Ephemeral Passwords**: Passwords exist only in memory during generation
-- **Local Computation**: No data leaves your device
+- **Decentralized Trust**: No third party needed — you control your secrets completely
+- **Deterministic Security**: Same input = same output, always reproducible across platforms
+- **No Vulnerable Metadata Storage**: Only public keys and descriptions can be stored (optional)
+- **Zero Storage of Secrets**: Secret phrases exist only in your memory, private keys are derived on-demand and never persisted
 - **No Recovery Backdoors**: Lost secret = permanently lost passwords (by design)
 
 ---
@@ -57,14 +71,20 @@
 
 ## Technical Foundation
 
-**Key derivation (same as Python/JS/Kotlin versions):**
+**Key derivation (same as Python/JS/Kotlin/C# versions):**
 
-| Key Type    | Iterations | Purpose                            |
-|-------------|------------|------------------------------------|
-| Private Key | 30         | Password generation (never stored) |
-| Public Key  | 60         | Verification (stored on server)    |
+| Key Type    | Iterations | Purpose                                                 |
+|-------------|------------|---------------------------------------------------------|
+| Private Key | 30         | Password generation (never stored, never transmitted)   |
+| Public Key  | 60         | Verification (stored locally)                           |
 
 **Character Set:** `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&*-_`
+
+**Decentralized Architecture**:
+- No central authority required
+- Metadata can be synced via any channel (USB, cloud, even paper)
+- Your security depends only on your secret phrase, not on any service provider
+- Works offline — no internet connection required
 
 ## Installation
 
@@ -84,7 +104,7 @@ import (
 )
 
 func main() {
-    secret := "MyCatHippo2026"
+    secret := "MyStrongSecretPhrase2026!"
     length := 16
     
     password, _ := smartpasslib.GenerateSmartPassword(secret, length)
@@ -94,19 +114,19 @@ func main() {
 
 ### Generate Public/Private Keys
 ```go
-secret := "MyCatHippo2026"
+secret := "MyStrongSecretPhrase2026!"
 
 publicKey, _ := smartpasslib.GeneratePublicKey(secret)
 privateKey, _ := smartpasslib.GeneratePrivateKey(secret)
 
-fmt.Println("Public Key (store on server):", publicKey)
+fmt.Println("Public Key (store locally):", publicKey)
 fmt.Println("Private Key (never store):", privateKey)
 ```
 
 ### Verify Secret Against Public Key
 ```go
-secret := "MyCatHippo2026"
-storedPublicKey := "..." // from server
+secret := "MyStrongSecretPhrase2026!"
+storedPublicKey := "..." // from local
 
 isValid, _ := smartpasslib.VerifySecret(secret, storedPublicKey)
 if isValid {
@@ -166,35 +186,41 @@ code, _ := smartpasslib.GenerateCode(8)
 
 ### Strong Secret Examples
 ```
-✅ "MyCatHippo2026"          — mixed case + numbers
-✅ "P@ssw0rd!LongSecret"     — special chars + numbers + length
-✅ "КотБегемот2026НаДиете"   — Cyrillic + numbers
-✅ "GitHubPersonal2026!"     — description + extra chars (but not the description alone)
+✅ "MyStrongSecretPhrase2026!"   — mixed case + numbers + symbols
+✅ "P@ssw0rd!LongSecret"         — special chars + numbers + length
+✅ "КотБегемот2026НаДиете"       — Cyrillic + numbers
 ```
 
 ### Weak Secret Examples (avoid)
 ```
-❌ "GitHub Account"          — using description as secret (weak!)
-❌ "password"                — dictionary word, too short
-❌ "1234567890"              — only digits, too short
-❌ "qwerty123"               — keyboard pattern
-❌ Same as description       — never use the same value as password description
+❌ "GitHub Account"              — using description as secret (weak!)
+❌ "password"                    — dictionary word, too short
+❌ "1234567890"                  — only digits, too short
+❌ "qwerty123"                   — keyboard pattern
+❌ Same as description           — never use the same value as password description
 ```
 
-## Cross-Platform Compatibility
+### Decentralized Nature
 
+**There is no "forgot password" button.** This is by design:
+
+- No central server can reset your passwords
+- No support team can recover your access
+- Your secret phrase is the ONLY key
+
+**This is the price of true decentralization** — you are completely in control.
+
+## Cross-Platform Implementations
+
+The same deterministic algorithm is available in multiple languages.
 SmartPassLib Go produces **identical passwords** to:
 
-| Platform   | Repository                                                                                                                |
-|------------|:--------------------------------------------------------------------------------------------------------------------------|
-| Python     | [smartpasslib](https://github.com/smartlegionlab/smartpasslib)                                                            |
-| JavaScript | [smartpasslib-js](https://github.com/smartlegionlab/smartpasslib-js)                                                      |
-| Kotlin     | [smartpasslib-kotlin](https://github.com/smartlegionlab/smartpasslib-kotlin)                                              |
-| Go         | [smartpasslib-go](https://github.com/smartlegionlab/smartpasslib-go)                                                      |
-| Web        | [Web Manager](https://github.com/smartlegionlab/smart-password-manager-web)                                               |
-| Android    | [Android Manager](https://github.com/smartlegionlab/smart-password-manager-android)                                       |
-| Desktop    | [Desktop Manager](https://github.com/smartlegionlab/smart-password-manager-desktop)                                       |
-| CLI        | [CLI PassMan](https://github.com/smartlegionlab/clipassman) / [CLI PassGen](https://github.com/smartlegionlab/clipassgen) |
+| Language   | Repository                                                                   |
+|------------|:-----------------------------------------------------------------------------|
+| Python     | [smartpasslib](https://github.com/smartlegionlab/smartpasslib)               |
+| JavaScript | [smartpasslib-js](https://github.com/smartlegionlab/smartpasslib-js)         |
+| Kotlin     | [smartpasslib-kotlin](https://github.com/smartlegionlab/smartpasslib-kotlin) |
+| C#         | [smartpasslib-csharp](https://github.com/smartlegionlab/smartpasslib-csharp) |
 
 ## Testing
 
@@ -208,43 +234,38 @@ sudo pacman -S go
 sudo apt install golang
 ```
 
-### Run example
-
-```bash
-go run ./cmd/example/main.go
-````
-
 ### Run tests
 
 ```bash
 go test -v
 ```
 
-### Run test script
-
-```bash
-chmod +x test.sh
-./test.sh
-```
-
 ## Ecosystem
 
 **Core Libraries:**
-- **[smartpasslib](https://github.com/smartlegionlab/smartpasslib)** - Python implementation
-- **[smartpasslib-js](https://github.com/smartlegionlab/smartpasslib-js)** - JavaScript implementation
-- **[smartpasslib-kotlin](https://github.com/smartlegionlab/smartpasslib-kotlin)** - Kotlin implementation
-- **[smartpasslib-go](https://github.com/smartlegionlab/smartpasslib-go)** - Go implementation
+- **[smartpasslib](https://github.com/smartlegionlab/smartpasslib)** - Python
+- **[smartpasslib-js](https://github.com/smartlegionlab/smartpasslib-js)** - JavaScript
+- **[smartpasslib-kotlin](https://github.com/smartlegionlab/smartpasslib-kotlin)** - Kotlin
+- **[smartpasslib-go](https://github.com/smartlegionlab/smartpasslib-go)** - Go (this)
+- **[smartpasslib-csharp](https://github.com/smartlegionlab/smartpasslib-csharp)** - C#
 
-**Applications:**
-- **[Desktop Manager](https://github.com/smartlegionlab/smart-password-manager-desktop)** - Cross-platform desktop app
-- **[CLI PassMan](https://github.com/smartlegionlab/clipassman)** - Console password manager
-- **[CLI PassGen](https://github.com/smartlegionlab/clipassgen)** - Console password generator
-- **[Web Manager](https://github.com/smartlegionlab/smart-password-manager-web)** - Web interface
-- **[Android Manager](https://github.com/smartlegionlab/smart-password-manager-android)** - Mobile Android app
+**CLI Applications:**
+- **[CLI Smart Password Manager (Python)](https://github.com/smartlegionlab/clipassman)**
+- **[CLI Smart Password Generator (Python)](https://github.com/smartlegionlab/clipassgen)**
+- **[CLI Smart Password Manager (C#)](https://github.com/smartlegionlab/SmartPasswordManagerCsharpCli)**
+- **[CLI Smart Password Generator (C#)](https://github.com/smartlegionlab/SmartPasswordGeneratorCsharpCli)** 
+
+**Desktop Applications:**
+- **[Desktop Smart Password Manager (Python)](https://github.com/smartlegionlab/smart-password-manager-desktop)**
+- **[Desktop Smart Password Manager (C#)](https://github.com/smartlegionlab/SmartPasswordManagerCsharpDesktop)**
+
+**Other:**
+- **[Web Smart Password Manager](https://github.com/smartlegionlab/smart-password-manager-web)**
+- **[Android Smart Password Manager](https://github.com/smartlegionlab/smart-password-manager-android)**
 
 ## License
 
-**[BSD 3-Clause License](LICENSE)**
+**[BSD 3-Clause License](https://github.com/smartlegionlab/smartpasslib-go/blob/master/LICENSE)**
 
 Copyright (©) 2026, [Alexander Suvorov](https://github.com/smartlegionlab)
 
@@ -257,7 +278,5 @@ Copyright (©) 2026, [Alexander Suvorov](https://github.com/smartlegionlab)
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/smartlegionlab/smartpasslib-go/issues)
-- **Documentation**: This [README](README.md)
-
----
+- **Documentation**: This [README](https://github.com/smartlegionlab/smartpasslib-go/blob/master/README.md)
 
