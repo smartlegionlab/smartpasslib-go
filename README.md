@@ -1,4 +1,4 @@
-# SmartPassLib Go <sup>v1.0.2</sup>
+# SmartPassLib Go <sup>v4.0.0</sup>
 
 ---
 
@@ -32,6 +32,16 @@ smartpasslib stores nothing. Your secrets never leave your device. Passwords are
 
 ---
 
+## 🔄 Breaking Change (v4.0.0)
+
+> **⚠️ This version is NOT backward compatible with v1.x.x**
+
+Passwords generated with older versions **cannot be regenerated** with v4.0.0.
+
+📖 **Full migration instructions** → see [MIGRATION.md](https://github.com/smartlegionlab/smartpasslib-go/blob/master/MIGRATION.md)
+
+---
+
 ## Core Principles
 
 - **Zero-Storage Security**: No passwords or secret phrases are ever stored or transmitted
@@ -45,10 +55,10 @@ smartpasslib stores nothing. Your secrets never leave your device. Passwords are
 
 - **Decentralized & Serverless**: No central database, no cloud lock-in, complete user sovereignty
 - **Smart Password Generation**: Deterministic from secret phrase
-- **Public/Private Key System**: 30 iterations for private key, 60 for public key
+- **Public/Private Key System**: 15-30 iterations for private key, 45-60 for public key (dynamic per secret)
 - **Secret Verification**: Verify secret without exposing it
 - **Random Password Generation**: Cryptographically secure random passwords
-- **Authentication Codes**: Short codes for 2FA/MFA (4-20 chars)
+- **Authentication Codes**: Short codes for 2FA/MFA (4-100 chars)
 - **No External Dependencies**: Pure Go, uses standard crypto
 
 ## Security Model
@@ -56,6 +66,7 @@ smartpasslib stores nothing. Your secrets never leave your device. Passwords are
 - **Proof of Knowledge**: Public keys verify secrets without exposing them
 - **Decentralized Trust**: No third party needed — you control your secrets completely
 - **Deterministic Security**: Same input = same output, always reproducible across platforms
+- **Dynamic Iteration Counts**: Private key uses 15-30 iterations, public key uses 45-60 iterations (deterministic per secret)
 - **No Vulnerable Metadata Storage**: Only public keys and descriptions can be stored (optional)
 - **Zero Storage of Secrets**: Secret phrases exist only in your memory, private keys are derived on-demand and never persisted
 - **No Recovery Backdoors**: Lost secret = permanently lost passwords (by design)
@@ -71,14 +82,19 @@ smartpasslib stores nothing. Your secrets never leave your device. Passwords are
 
 ## Technical Foundation
 
-**Key derivation (same as Python/JS/Kotlin/C# versions):**
+**Key derivation (same as Python/JS/Kotlin/C# versions v4.0.0):**
 
-| Key Type    | Iterations | Purpose                                                 |
-|-------------|------------|---------------------------------------------------------|
-| Private Key | 30         | Password generation (never stored, never transmitted)   |
-| Public Key  | 60         | Verification (stored locally)                           |
+| Key Type    | Iterations              | Purpose                                                 |
+|-------------|-------------------------|---------------------------------------------------------|
+| Private Key | 15-30 (dynamic)         | Password generation (never stored, never transmitted)   |
+| Public Key  | 45-60 (dynamic)         | Verification (stored locally)                           |
 
-**Character Set:** `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&*-_`
+**Character Set:** `!@#$%^&*()_+-=[]{};:,.<>?/ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz`
+
+**Validation Rules:**
+- Secret phrase: minimum 12 characters
+- Password length: 12-100 characters
+- Code length: 4-100 characters
 
 **Decentralized Architecture**:
 - No central authority required
@@ -89,7 +105,7 @@ smartpasslib stores nothing. Your secrets never leave your device. Passwords are
 ## Installation
 
 ```bash
-go get github.com/smartlegionlab/smartpasslib-go
+go get github.com/smartlegionlab/smartpasslib-go@v4.0.0
 ```
 
 ## Quick Usage
@@ -108,7 +124,7 @@ func main() {
     length := 16
     
     password, _ := smartpasslib.GenerateSmartPassword(secret, length)
-    fmt.Println(password) // e.g., "jrh_E5V!2#neNjnP"
+    fmt.Println(password)
 }
 ```
 
@@ -142,7 +158,7 @@ strong, _ := smartpasslib.GenerateStrongPassword(20)
 // Base random
 base, _ := smartpasslib.GenerateBasePassword(16)
 
-// Authentication code (4-20 chars)
+// Authentication code (4-100 chars)
 code, _ := smartpasslib.GenerateCode(8)
 ```
 
@@ -152,35 +168,35 @@ code, _ := smartpasslib.GenerateCode(8)
 
 | Constant  | Type   | Description                       |
 |-----------|--------|-----------------------------------|
-| `Version` | string | Library version                   |
+| `Version` | string | Library version (4.0.0)           |
 | `Chars`   | string | Character set used for generation |
 
 ### Functions
 
 | Function                                      | Parameters        | Returns         | Description                      |
 |-----------------------------------------------|-------------------|-----------------|----------------------------------|
-| `GeneratePrivateKey(secret)`                  | secret: string    | (string, error) | Private key (30 iterations)      |
-| `GeneratePublicKey(secret)`                   | secret: string    | (string, error) | Public key (60 iterations)       |
+| `GeneratePrivateKey(secret)`                  | secret: string    | (string, error) | Private key (15-30 iterations)   |
+| `GeneratePublicKey(secret)`                   | secret: string    | (string, error) | Public key (45-60 iterations)    |
 | `VerifySecret(secret, publicKey)`             | secret, publicKey | (bool, error)   | Verify secret matches public key |
 | `GenerateSmartPassword(secret, length)`       | secret, length    | (string, error) | Deterministic password           |
 | `GenerateStrongPassword(length)`              | length            | (string, error) | Cryptographically random         |
 | `GenerateBasePassword(length)`                | length            | (string, error) | Simple random password           |
-| `GenerateCode(length)`                        | length            | (string, error) | Short code (4-20 chars)          |
+| `GenerateCode(length)`                        | length            | (string, error) | Short code (4-100 chars)         |
 
 ### Input Validation
 
 | Parameter       | Minimum  | Maximum    |
 |-----------------|----------|------------|
 | Secret phrase   | 12 chars | unlimited  |
-| Password length | 12 chars | 1000 chars |
-| Code length     | 4 chars  | 20 chars   |
+| Password length | 12 chars | 100 chars  |
+| Code length     | 4 chars  | 100 chars  |
 
 ## Security Requirements
 
 ### Secret Phrase
 - **Minimum 12 characters** (enforced)
 - Case-sensitive
-- Use mix of: uppercase, lowercase, numbers, symbols, emoji, or Cyrillic
+- Use mix of: uppercase, lowercase, numbers, symbols
 - Never store digitally
 - **NEVER use your password description as secret phrase**
 
@@ -188,16 +204,15 @@ code, _ := smartpasslib.GenerateCode(8)
 ```
 ✅ "MyStrongSecretPhrase2026!"   — mixed case + numbers + symbols
 ✅ "P@ssw0rd!LongSecret"         — special chars + numbers + length
-✅ "КотБегемот2026НаДиете"       — Cyrillic + numbers
+✅ "GitHubPersonal2026!"         — description + extra chars
 ```
 
 ### Weak Secret Examples (avoid)
 ```
+❌ "short"                       — too short, returns error
 ❌ "GitHub Account"              — using description as secret (weak!)
 ❌ "password"                    — dictionary word, too short
 ❌ "1234567890"                  — only digits, too short
-❌ "qwerty123"                   — keyboard pattern
-❌ Same as description           — never use the same value as password description
 ```
 
 ### Decentralized Nature
@@ -279,4 +294,6 @@ Copyright (©) 2026, [Alexander Suvorov](https://github.com/smartlegionlab)
 
 - **Issues**: [GitHub Issues](https://github.com/smartlegionlab/smartpasslib-go/issues)
 - **Documentation**: This [README](https://github.com/smartlegionlab/smartpasslib-go/blob/master/README.md)
+
+---
 

@@ -1,5 +1,5 @@
 /**
- * SmartPassLib v1.0.2 - Go smart password generator
+ * SmartPassLib v4.0.0 - Go smart password generator
  * Cross-platform deterministic password generation
  * Same secret + same length = same password across all platforms
  * Decentralized by design — no central servers, no cloud dependency, no third-party trust required
@@ -7,13 +7,18 @@
  * Compatible with smartpasslib Python/JS/Kotlin/C# implementations
  *
  * Key derivation:
- * - Private key: 30 iterations of SHA-256 (used for password generation)
- * - Public key: 60 iterations of SHA-256 (used for verification, stored locally)
+ * - Private key: 15-30 iterations (dynamic, deterministic per secret)
+ * - Public key: 45-60 iterations (dynamic, deterministic per secret)
  *
  * Secret phrase:
  *   - is not transferred anywhere
  *   - is not stored anywhere
  *   - is required to generate the private key when creating a smart password
+ *   - minimum 12 characters (enforced)
+ *
+ * Password length:
+ *   - minimum 12 characters (enforced)
+ *   - maximum 100 characters (enforced)
  *
  * Ecosystem:
  *   - Core library (Python): https://github.com/smartlegionlab/smartpasslib
@@ -42,55 +47,90 @@ import (
     "crypto/sha256"
     "encoding/hex"
     "fmt"
+    "strconv"
 )
 
-// Version
-const Version = "1.0.2"
+const Version = "4.0.0"
 
-// Character set for password generation (must match other implementations)
-const Chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&*-_"
+const Chars = "!@#$%^&*()_+-=[]{};:,.<>?/ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz"
 
-// Iteration counts
-const (
-    privateIterations = 30 // For private key (password generation)
-    publicIterations  = 60 // For public key (verification, stored on server)
-)
-
-// sha256 hash function
 func sha256Hash(text string) string {
     hash := sha256.Sum256([]byte(text))
     return hex.EncodeToString(hash[:])
 }
 
-// generateKey generates a key from secret phrase with specified number of iterations
-func generateKey(secret string, iterations int) (string, error) {
+func validateSecret(secret string) error {
     if len(secret) < 12 {
-        return "", fmt.Errorf("secret phrase must be at least 12 characters. Current: %d", len(secret))
+        return fmt.Errorf("secret phrase must be at least 12 characters. Current: %d", len(secret))
     }
+    return nil
+}
 
-    allHash := sha256Hash(secret)
-
-    for i := 0; i < iterations; i++ {
-        tempString := fmt.Sprintf("%s:%s:%d", allHash, secret, i)
-        allHash = sha256Hash(tempString)
+func validatePasswordLength(length int) error {
+    if length < 12 {
+        return fmt.Errorf("password length must be at least 12 characters. Current: %d", length)
     }
+    if length > 100 {
+        return fmt.Errorf("password length cannot exceed 100 characters. Current: %d", length)
+    }
+    return nil
+}
 
+func validateCodeLength(length int) error {
+    if length < 4 {
+        return fmt.Errorf("code length must be at least 4 characters. Current: %d", length)
+    }
+    if length > 100 {
+        return fmt.Errorf("code length cannot exceed 100 characters. Current: %d", length)
+    }
+    return nil
+}
+
+func getStepsFromSecret(secret string, minSteps, maxSteps int, salt string) (int, error) {
+    hashValue := sha256Hash(fmt.Sprintf("%s:%s", secret, salt))
+    if len(hashValue) < 8 {
+        return 0, fmt.Errorf("hash too short")
+    }
+    hashInt, err := strconv.ParseInt(hashValue[:8], 16, 64)
+    if err != nil {
+        return 0, err
+    }
+    return minSteps + int(hashInt)%(maxSteps-minSteps+1), nil
+}
+
+func generateKey(secret string, steps int, salt string) (string, error) {
+    if err := validateSecret(secret); err != nil {
+        return "", err
+    }
+    allHash := sha256Hash(fmt.Sprintf("%s:%s", secret, salt))
+    for i := 0; i < steps; i++ {
+        allHash = sha256Hash(fmt.Sprintf("%s:%d", allHash, i))
+    }
     return allHash, nil
 }
 
-// GeneratePrivateKey generates private key from secret phrase (30 iterations)
-// Used for password generation, never stored or transmitted
 func GeneratePrivateKey(secret string) (string, error) {
-    return generateKey(secret, privateIterations)
+    if err := validateSecret(secret); err != nil {
+        return "", err
+    }
+    steps, err := getStepsFromSecret(secret, 15, 30, "private")
+    if err != nil {
+        return "", err
+    }
+    return generateKey(secret, steps, "private")
 }
 
-// GeneratePublicKey generates public key from secret phrase (60 iterations)
-// Used for verification, stored on server
 func GeneratePublicKey(secret string) (string, error) {
-    return generateKey(secret, publicIterations)
+    if err := validateSecret(secret); err != nil {
+        return "", err
+    }
+    steps, err := getStepsFromSecret(secret, 45, 60, "public")
+    if err != nil {
+        return "", err
+    }
+    return generateKey(secret, steps, "public")
 }
 
-// VerifySecret verifies that a secret phrase matches a stored public key
 func VerifySecret(secret, publicKey string) (bool, error) {
     computedKey, err := GeneratePublicKey(secret)
     if err != nil {
@@ -99,7 +139,6 @@ func VerifySecret(secret, publicKey string) (bool, error) {
     return computedKey == publicKey, nil
 }
 
-// hexToBytes converts hex string to byte slice
 func hexToBytes(hexStr string) ([]byte, error) {
     bytes := make([]byte, len(hexStr)/2)
     for i := 0; i < len(hexStr); i += 2 {
@@ -112,46 +151,36 @@ func hexToBytes(hexStr string) ([]byte, error) {
     return bytes, nil
 }
 
-// generatePasswordFromPrivateKey generates deterministic smart password from private key
 func generatePasswordFromPrivateKey(privateKey string, length int) (string, error) {
-    if length < 12 || length > 1000 {
-        return "", fmt.Errorf("password length must be between 12 and 1000. Current: %d", length)
+    if err := validatePasswordLength(length); err != nil {
+        return "", err
     }
-
     result := make([]byte, 0, length)
     counter := 0
-
     for len(result) < length {
-        data := fmt.Sprintf("%s:%d", privateKey, counter)
-        hashHex := sha256Hash(data)
+        hashHex := sha256Hash(fmt.Sprintf("%s:%d", privateKey, counter))
         hashBytes, err := hexToBytes(hashHex)
         if err != nil {
             return "", err
         }
-
         for _, b := range hashBytes {
             if len(result) < length {
                 idx := int(b) & 0xFF
                 result = append(result, Chars[idx%len(Chars)])
-            } else {
-                break
             }
         }
         counter++
     }
-
     return string(result), nil
 }
 
-// GenerateSmartPassword generates deterministic smart password directly from secret phrase
 func GenerateSmartPassword(secret string, length int) (string, error) {
-    if len(secret) < 12 {
-        return "", fmt.Errorf("secret phrase must be at least 12 characters. Current: %d", len(secret))
+    if err := validateSecret(secret); err != nil {
+        return "", err
     }
-    if length < 12 || length > 1000 {
-        return "", fmt.Errorf("password length must be between 12 and 1000. Current: %d", length)
+    if err := validatePasswordLength(length); err != nil {
+        return "", err
     }
-
     privateKey, err := GeneratePrivateKey(secret)
     if err != nil {
         return "", err
@@ -159,17 +188,14 @@ func GenerateSmartPassword(secret string, length int) (string, error) {
     return generatePasswordFromPrivateKey(privateKey, length)
 }
 
-// GenerateStrongPassword generates cryptographically secure random password
 func GenerateStrongPassword(length int) (string, error) {
-    if length < 12 || length > 1000 {
-        return "", fmt.Errorf("password length must be between 12 and 1000. Current: %d", length)
+    if err := validatePasswordLength(length); err != nil {
+        return "", err
     }
-
     bytes := make([]byte, length)
     if _, err := rand.Read(bytes); err != nil {
         return "", err
     }
-
     result := make([]byte, length)
     for i, b := range bytes {
         result[i] = Chars[int(b)%len(Chars)]
@@ -177,22 +203,18 @@ func GenerateStrongPassword(length int) (string, error) {
     return string(result), nil
 }
 
-// GenerateBasePassword generates base random password
 func GenerateBasePassword(length int) (string, error) {
     return GenerateStrongPassword(length)
 }
 
-// GenerateCode generates authentication code (shorter, for 2FA)
 func GenerateCode(length int) (string, error) {
-    if length < 4 || length > 20 {
-        return "", fmt.Errorf("code length must be between 4 and 20. Current: %d", length)
+    if err := validateCodeLength(length); err != nil {
+        return "", err
     }
-
     bytes := make([]byte, length)
     if _, err := rand.Read(bytes); err != nil {
         return "", err
     }
-
     result := make([]byte, length)
     for i, b := range bytes {
         result[i] = Chars[int(b)%len(Chars)]
