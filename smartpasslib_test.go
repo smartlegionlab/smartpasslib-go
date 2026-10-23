@@ -8,7 +8,7 @@ import (
 func TestAll(t *testing.T) {
     println()
     println(strings.Repeat("=", 60))
-    println("SmartPassLib Go v4.0.0 - Generator Test")
+    println("SmartPassLib Go v4.0.1 - Generator Test")
     println(strings.Repeat("=", 60))
     println()
 

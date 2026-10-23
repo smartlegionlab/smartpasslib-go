@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "============================================================"
-echo "🔐 SmartPassLib GO - TEST SUITE"
+echo "SmartPassLib GO - TEST SUITE"
 echo "============================================================"
 echo ""
 
@@ -10,5 +10,5 @@ go test -v
 
 echo ""
 echo "============================================================"
-echo "✅ All tests completed"
+echo "All tests completed"
 echo "============================================================"
